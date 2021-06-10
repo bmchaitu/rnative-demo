@@ -2,76 +2,72 @@ import React, { useCallback, useEffect } from "react";
 import * as BatteryModule from "expo-battery";
 import { View, Text, StyleSheet } from "react-native";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
+import { Title, Headline } from "react-native-paper";
 
 const Battery = (props) => {
   const [chrging, setChrging] = React.useState(false);
   const [pwr, setPwrMode] = React.useState(false);
-  const [bstate,setBState] = React.useState('NO');
+  const [bstate, setBState] = React.useState("NO");
 
   const getBatteryLevel = useCallback(async (props) => {
-    setChrging(await BatteryModule.getBatteryLevelAsync() * 100);
-    setPwrMode(String(await BatteryModule.isLowPowerModeEnabledAsync()));
+    setChrging(
+      ((await BatteryModule.getBatteryLevelAsync()) * 100).toPrecision(9)
+    );
+    setPwrMode(
+      String(await BatteryModule.isLowPowerModeEnabledAsync()).toUpperCase()
+    );
     let mode = String(await BatteryModule.getBatteryStateAsync());
-    switch(mode){
-      case "2" :
-        setBState('CHARGING');
+    switch (mode) {
+      case "2":
+        setBState("CHARGING");
         break;
-      case "1" : 
-        setBState('CHARGER UNPLUGGED');
+      case "1":
+        setBState("CHARGER UNPLUGGED");
         break;
       case "3":
-        setBState("Battery Full");
+        setBState("BATTERY FULL");
         break;
       default:
-        setBState("STATE UN KNOWN");
+        setBState("STATE UNKNOWN");
     }
-    
 
+    if (chrging == 100 && bstate == "CHARGING")
+      console.log("Buttaery Full Take off the Charger");
+
+    if (chrging <= 20 && bstate != "CHARGING")
+      console.log(
+        "Battery is Low Please charge your Mobile or Turn on the Power mode"
+      );
   });
 
   useEffect(() => {
     getBatteryLevel();
-    const unsubscribe = BatteryModule.addLowPowerModeListener(async (power) => {
-      let powerMode  = await BatteryModule.isLowPowerModeEnabledAsync();
-    });
-   return () => {
-     unsubscribe.remove();
-   } 
-  }, [pwr, chrging]);
+    const unsubscribe1 = BatteryModule.addBatteryLevelListener(getBatteryLevel);
+    const unsubscribe2 = BatteryModule.addBatteryStateListener(getBatteryLevel);
+    const unsubscribe3 = BatteryModule.addLowPowerModeListener(getBatteryLevel);
+    return () => {
+      unsubscribe1.remove();
+      unsubscribe2.remove();
+      unsubscribe3.remove();
+    };
+  }, [props]);
 
   return (
-    <View>
-      <ScrollView indicatorStyle="white" style={styles.container}>
+    <View style={styles.batteryComponent}>
+      <ScrollView
+        contentContainerStyle={{
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        indicatorStyle="white"
+        style={styles.container}
+      >
+        <Headline style={styles.headline}>MOBILE BATTERY STATUS</Headline>
         <TouchableOpacity>
           <View style={styles.battery_card}>
-            <Text>Battery Level: {chrging.toFixed(2)}%</Text>
-            <Text>Power Mode Enabled: {pwr}</Text>
-            <Text>Is Chargger Plugged: {bstate}</Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <View style={styles.battery_card}>
-            <Text>${BatteryModule.BatteryState.CHARGING}</Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <View style={styles.battery_card}>
-            <Text>Battery</Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <View style={styles.battery_card}>
-            <Text>Battery</Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <View style={styles.battery_card}>
-            <Text>Battery</Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <View style={styles.battery_card}>
-            <Text>Battery</Text>
+            <Title style={styles.header}>Battery Level: {chrging}%</Title>
+            <Title style={styles.header}>Power Mode Enabled: {pwr}</Title>
+            <Title style={styles.header}>Is PluggedIn: {bstate}</Title>
           </View>
         </TouchableOpacity>
       </ScrollView>
@@ -83,7 +79,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: "100%",
-    marginTop: 35,
+    padding: 20,
+    textAlign: "center",
   },
   battery_card: {
     width: 350,
@@ -93,6 +90,17 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 2,
     backgroundColor: "#8be3e1",
+  },
+  header: {
+    fontSize: 16,
+  },
+  headline: {
+    fontWeight: "bold",
+  },
+  batteryComponent: {
+    backgroundColor: "#867ae9",
+    height: 280,
+    borderRadius: 20,
   },
 });
 export default Battery;
