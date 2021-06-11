@@ -4,11 +4,13 @@ import { View, Text, StyleSheet } from "react-native";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import { Title, Headline } from "react-native-paper";
 
+
 const Battery = (props) => {
   const [chrging, setChrging] = React.useState(false);
   const [pwr, setPwrMode] = React.useState(false);
   const [bstate, setBState] = React.useState("NO");
 
+  
   const getBatteryLevel = useCallback(async (props) => {
     setChrging(
       ((await BatteryModule.getBatteryLevelAsync()) * 100).toPrecision(9)
@@ -39,7 +41,7 @@ const Battery = (props) => {
         "Battery is Low Please charge your Mobile or Turn on the Power mode"
       );
   });
-
+  console.log(parseInt(chrging));
   useEffect(() => {
     getBatteryLevel();
     const unsubscribe1 = BatteryModule.addBatteryLevelListener(getBatteryLevel);
@@ -54,23 +56,18 @@ const Battery = (props) => {
 
   return (
     <View style={styles.batteryComponent}>
-      <ScrollView
-        contentContainerStyle={{
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-        indicatorStyle="white"
+      <View
         style={styles.container}
       >
-        <Headline style={styles.headline}>MOBILE BATTERY STATUS</Headline>
         <TouchableOpacity>
+        <Headline style={styles.headline}>MOBILE BATTERY STATUS</Headline>
           <View style={styles.battery_card}>
             <Title style={styles.header}>Battery Level: {chrging}%</Title>
             <Title style={styles.header}>Power Mode Enabled: {pwr}</Title>
             <Title style={styles.header}>Is PluggedIn: {bstate}</Title>
           </View>
         </TouchableOpacity>
-      </ScrollView>
+      </View>
     </View>
   );
 };
@@ -81,6 +78,8 @@ const styles = StyleSheet.create({
     width: "100%",
     padding: 20,
     textAlign: "center",
+    alignItems: "center",
+    justifyContent: "center",
   },
   battery_card: {
     width: 350,
@@ -101,6 +100,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#867ae9",
     height: 280,
     borderRadius: 20,
+    margin:30
   },
 });
 export default Battery;
